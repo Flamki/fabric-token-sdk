@@ -40,7 +40,7 @@ The Transfer Service benchmarks serve several critical purposes:
 Tests transfer validation directly in-process without any network or API overhead. This establishes the performance baseline.
 
 ```bash
-cd token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/
+cd cmd/benchmarking/transfer_service
 GOGC=10000 go test -run ^$ -bench=BenchmarkLocalTransferService -benchtime=30s -count=5 -cpu=1,4,8,16,32,64
 ```
 
@@ -55,7 +55,7 @@ GOGC=10000 go test -run ^$ -bench=BenchmarkLocalTransferService -benchtime=30s -
 Tests transfer validation through FSC's View API on a single node. Measures API overhead compared to direct validation.
 
 ```bash
-cd token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/
+cd cmd/benchmarking/transfer_service
 GOGC=10000 go test -bench=BenchmarkAPI -benchtime=30s -count=5 -cpu=32
 ```
 
@@ -69,7 +69,7 @@ GOGC=10000 go test -bench=BenchmarkAPI -benchtime=30s -count=5 -cpu=32
 Tests transfer validation through gRPC client-server architecture on localhost. Measures network serialization overhead.
 
 ```bash
-cd token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/
+cd cmd/benchmarking/transfer_service
 GOGC=10000 go test -bench=BenchmarkAPIGRPC -benchtime=30s -count=5 -cpu=32 -numConn=1,2,4,8
 ```
 
@@ -83,7 +83,7 @@ GOGC=10000 go test -bench=BenchmarkAPIGRPC -benchtime=30s -count=5 -cpu=32 -numC
 
 ### 4. Distributed Two-Node Benchmark
 
-To setup AWS EC2 nodes See: [AWS Benchmark 2 Machines](../../../token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/aws_bench_2_machines.md)
+To setup AWS EC2 nodes See: [AWS Benchmark 2 Machines](../../../cmd/benchmarking/transfer_service/aws_bench_2_machines.md)
 
 For realistic deployment testing with separate client and server machines:
 
@@ -96,7 +96,7 @@ Setup:
 2. Start the server:
 
 ```bash
-cd token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/
+cd cmd/benchmarking/transfer_service
 GOGC=10000 go run ./server/
 ```
 Wait until you see the output:
@@ -108,9 +108,9 @@ Running fscnode test-node
 3. In the client, copy the node data from the server  
 We can use `Rsync` for this:
 ```bash
-cd token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/
+cd cmd/benchmarking/transfer_service
 
-rsync -avz <YourServerName>:/<fullpath>/fabric-token-sdk/token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/out/ ./out
+rsync -avz <YourServerName>:/<fullpath>/fabric-token-sdk/cmd/benchmarking/transfer_service/out/ ./out
 ``` 
 Note: Make sure full path and server name are correct
 
@@ -155,7 +155,7 @@ They both already have each-others SSH Keys, so I don't need to do it again.
 
 On dectrust2, Server Runs:
 ```bash
-cd token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/
+cd cmd/benchmarking/transfer_service
 GOGC=10000 go run ./server/
 ```
 I wait to see:
@@ -166,8 +166,8 @@ Running fscnode test-node
 
 On dectrust1:
 ```bash
-cd ~/effi/fabric-token-sdk/token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/
-rsync -avz root@dectrust2.vpc.cloud9.ibm.com:/root/effi/fabric-token-sdk/token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/out/ ./out
+cd ~/effi/fabric-token-sdk/cmd/benchmarking/transfer_service
+rsync -avz root@dectrust2.vpc.cloud9.ibm.com:/root/effi/fabric-token-sdk/cmd/benchmarking/transfer_service/out/ ./out
 sed 's#127.0.0.1#dectrust1.vpc.cloud9.ibm.com#g' ./out/testdata/fsc/nodes/test-node.0/client-config.yaml -i
 GOGC=10000 nohup go run ./client/ -benchtime=30s -count=5 -workloads=zkp -cpu=1,2,4,8,16,32 -numConn=1,2,4,8 2>&1 | tee example-2node.txt &
 ```
@@ -225,5 +225,5 @@ BenchmarkLocalTransferService/out-tokens=2in-tokens=2-32    1000    30000000 ns/
 - **[Core Driver Benchmarks](core/dlognogh/dlognogh.md)** - Lower-level cryptographic benchmarks
 - **[Testing Architecture](core/dlognogh/dlognogh_architecture.md)** - Understanding the test layers
 - **[Benchmark Tools](tools.md)** - Analysis and profiling tools
-- **[AWS Setup Guide](../../../token/core/zkatdlog/nogh/v1/validator/bench/transfer_service/aws_bench_2_machines.md)** - Cloud deployment instructions
+- **[AWS Setup Guide](../../../cmd/benchmarking/transfer_service/aws_bench_2_machines.md)** - Cloud deployment instructions
 
