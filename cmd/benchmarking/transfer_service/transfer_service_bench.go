@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	defaultTestRoot = "../../regression/testdata/32-BLS12_381_BBS_GURVY/transfers_i2_o2"
+	defaultTestRoot = "../../../token/core/zkatdlog/nogh/v1/validator/regression/testdata/32-BLS12_381_BBS_GURVY/transfers_i2_o2"
 )
 
 var (

@@ -13,7 +13,7 @@ import (
 	"path"
 
 	"github.com/hyperledger-labs/fabric-smart-client/integration/benchmark/node"
-	bench "github.com/hyperledger-labs/fabric-token-sdk/token/core/zkatdlog/nogh/v1/validator/bench/transfer_service"
+	bench "github.com/hyperledger-labs/fabric-token-sdk/cmd/benchmarking/transfer_service"
 )
 
 func main() {
