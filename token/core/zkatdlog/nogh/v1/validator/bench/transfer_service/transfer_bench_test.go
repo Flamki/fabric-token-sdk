@@ -47,7 +47,7 @@ func shuffle[T any](s []T, noSeed bool, disable bool) {
 }
 
 // CreateViewsWithProofs builds a pool of benchmark views backed by transfer proofs.
-func CreateViewsWithProofs(b *testing.B, testRoot string, f *TransferServiceViewFactory, n int) (*viewPool, []*trandferServiceParams) {
+func CreateViewsWithProofs(b *testing.B, testRoot string, f *TransferServiceViewFactory, n int) (*viewPool, []*transferServiceParams) {
 	b.Helper()
 	vp := &viewPool{}
 

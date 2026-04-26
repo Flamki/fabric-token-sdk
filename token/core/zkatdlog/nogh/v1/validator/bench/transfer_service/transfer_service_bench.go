@@ -37,12 +37,12 @@ var (
 	cachedValidator *token.Validator
 )
 
-type trandferServiceParams struct {
+type transferServiceParams struct {
 	OutputPath string     `json:"test_root_path,omitempty"`
 	TokenData  *TokenData `json:"proof,omitempty"`
 }
 
-func (p *trandferServiceParams) PublicParamsRaw() ([]byte, error) {
+func (p *transferServiceParams) PublicParamsRaw() ([]byte, error) {
 	paramsTxt := filepath.Join(filepath.Dir(filepath.Dir(p.OutputPath)), "params.txt")
 	raw, err := os.ReadFile(paramsTxt)
 	if err != nil {
@@ -56,7 +56,7 @@ func (p *trandferServiceParams) PublicParamsRaw() ([]byte, error) {
 	return ppRaw, nil
 }
 
-func (p *trandferServiceParams) PublicParams() (*v1setup.PublicParams, error) {
+func (p *transferServiceParams) PublicParams() (*v1setup.PublicParams, error) {
 	ppRaw, err := p.PublicParamsRaw()
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (p *trandferServiceParams) PublicParams() (*v1setup.PublicParams, error) {
 	return v1setup.NewPublicParamsFromBytes(ppRaw, v1setup.DLogNoGHDriverName, v1setup.ProtocolV1)
 }
 
-func (p *trandferServiceParams) NumInputs() int {
+func (p *transferServiceParams) NumInputs() int {
 	subDir := filepath.Base(filepath.Dir(p.OutputPath))
 	if m := regexp.MustCompile(`_i(\d+)_o(\d+)$`).FindStringSubmatch(subDir); len(m) == 3 {
 		n, _ := strconv.Atoi(m[1])
@@ -76,7 +76,7 @@ func (p *trandferServiceParams) NumInputs() int {
 	return -1
 }
 
-func (p *trandferServiceParams) NumOutputs() int {
+func (p *transferServiceParams) NumOutputs() int {
 	subDir := filepath.Base(filepath.Dir(p.OutputPath))
 	if m := regexp.MustCompile(`_i(\d+)_o(\d+)$`).FindStringSubmatch(subDir); len(m) == 3 {
 		n, _ := strconv.Atoi(m[2])
@@ -87,7 +87,7 @@ func (p *trandferServiceParams) NumOutputs() int {
 	return -1
 }
 
-func (p *trandferServiceParams) CurveID() string {
+func (p *transferServiceParams) CurveID() string {
 	dirName := filepath.Base(filepath.Dir(filepath.Dir(p.OutputPath)))
 	if parts := strings.SplitN(dirName, "-", 2); len(parts) == 2 {
 		return parts[1]
@@ -96,7 +96,7 @@ func (p *trandferServiceParams) CurveID() string {
 	return ""
 }
 
-func NewTokenTransferVerifyParamsSlice(TestRootPath string) []*trandferServiceParams {
+func NewTokenTransferVerifyParamsSlice(TestRootPath string) []*transferServiceParams {
 	if TestRootPath == "" {
 		TestRootPath = defaultTestRoot
 	}
@@ -116,7 +116,7 @@ func NewTokenTransferVerifyParamsSlice(TestRootPath string) []*trandferServicePa
 	if err != nil {
 		panic(err)
 	}
-	ret := make([]*trandferServiceParams, len(outPaths))
+	ret := make([]*transferServiceParams, len(outPaths))
 	for i, outPath := range outPaths {
 		ret[i] = newTokenTransferVerifyParams(filepath.Join(TestRootPath, outPath.Name()), ppRaw)
 	}
@@ -124,7 +124,7 @@ func NewTokenTransferVerifyParamsSlice(TestRootPath string) []*trandferServicePa
 	return ret
 }
 
-func newTokenTransferVerifyParams(outputPath string, ppRaw []byte) *trandferServiceParams {
+func newTokenTransferVerifyParams(outputPath string, ppRaw []byte) *transferServiceParams {
 	outputRaw, err := os.ReadFile(outputPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read %s: %w", outputPath, err))
@@ -138,7 +138,7 @@ func newTokenTransferVerifyParams(outputPath string, ppRaw []byte) *trandferServ
 		panic(fmt.Errorf("failed to unmarshal output file: %w", err))
 	}
 
-	return &trandferServiceParams{
+	return &transferServiceParams{
 		OutputPath: outputPath,
 		TokenData: &TokenData{
 			TokenRequestRaw: tokenData.ReqRaw,
@@ -161,14 +161,14 @@ func newTokenValidator(ppRaw []byte) (*token.Validator, error) {
 	}
 	v, err := is.NewValidator(ppm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create default validator: %w", err)
+		return nil, fmt.Errorf("failed to create validator: %w", err)
 	}
 
 	return token.NewValidator(v), nil
 }
 
-type TransferServiceView struct {
-	params    trandferServiceParams
+type TransferServiceTokenValidationView struct {
+	params    transferServiceParams
 	tokenData *TokenData
 	validator *token.Validator
 }
@@ -193,7 +193,7 @@ type TransferServiceView struct {
 //       f. TransferApplicationDataValidate [validates metadata]
 //   4. After all validators pass, it checks that all metadata have been validated
 
-func (q *TransferServiceView) Call(viewCtx view.Context) (interface{}, error) {
+func (q *TransferServiceTokenValidationView) Call(viewCtx view.Context) (interface{}, error) {
 	if q.tokenData == nil {
 		return nil, errors.New("proof data is nil")
 	}
@@ -216,7 +216,7 @@ type TransferServiceViewFactory struct{}
 // NewView builds a verification view.
 // Wire proof embedded in the JSON params (remote/gRPC path)
 func (c *TransferServiceViewFactory) NewView(in []byte) (view.View, error) {
-	f := &TransferServiceView{}
+	f := &TransferServiceTokenValidationView{}
 
 	if err := json.Unmarshal(in, &f.params); err != nil {
 		return nil, err
