@@ -275,6 +275,8 @@ func (d *StoreService) GetTokenRequests(ctx context.Context, txIDs []string) (ma
 
 // AcquireLocks acquires locks for the passed anchor and enrollment ids.
 // This can be used to prevent concurrent read/write access to the audit records of the passed enrollment ids.
+// The implementation provides deadlock prevention through deterministic lock ordering (sorted by enrollment ID).
+// Livelock prevention is handled by the caller through retry logic with exponential backoff.
 func (d *StoreService) AcquireLocks(ctx context.Context, anchor string, eIDs ...string) error {
 	// This implementation allows concurrent calls to AcquireLocks such that if two
 	// or more calls involve non-overlapping enrollment IDs, both calls will succeed.
@@ -290,7 +292,7 @@ func (d *StoreService) AcquireLocks(ctx context.Context, anchor string, eIDs ...
 	for _, id := range dedup {
 		lock, _ := d.eIDsLocks.LoadOrStore(id, &sync.RWMutex{})
 		lock.(*sync.RWMutex).Lock()
-		logger.DebugfContext(ctx, "Acquire locks for [%s:%v] enrollment id done", anchor, id)
+		logger.DebugfContext(ctx, "Acquired lock for [%s:%v] enrollment id", anchor, id)
 	}
 	logger.DebugfContext(ctx, "Acquire locks for [%s:%v] enrollment ids...done", anchor, dedup)
 
